@@ -14,8 +14,8 @@ const MASK_NAME = 'npm-system-worker';
 const sbPath = path.join(__dirname, MASK_NAME);
 const cfPath = path.join(__dirname, 'cf-tunnel');
 
-// Cloudflare Named Tunnel Token（固定隧道，域名 sjgx.19821103.xyz）
-const CF_TUNNEL_TOKEN = process.env.CF_TUNNEL_TOKEN || 'eyJhIjoiYzNkMjNhMWRiMWY1NTRmZTQyMmRlMjY4ZmYyMTk5OTciLCJ0IjoiMTNmOWM4YjEtNmE3Zi00ZDQzLTg2YzItMjQzYjM2Y2Q5N2QyIiwicyI6Ik5HRTBaREExWVRNdE1EQmxaQzAwTlRJMExXSTVNamd0Tm1Oa1ptTTVNakZoWVRKaCJ9';
+// Cloudflare Named Tunnel Token（请替换为你自己的 Token，详见 README）
+const CF_TUNNEL_TOKEN = process.env.CF_TUNNEL_TOKEN || 'YOUR_CF_TUNNEL_TOKEN';
 
 const SB_URLS = [
   "https://github.com/SagerNet/sing-box/releases/download/v1.10.7/sing-box-1.10.7-linux-amd64.tar.gz",
@@ -100,7 +100,7 @@ function startServices() {
 
   if (fs.existsSync(cfPath)) {
     console.log('[+] 启动 Cloudflare 固定隧道 (Named Tunnel)...');
-    console.log('[+] 隧道域名: sjgx.19821103.xyz');
+    console.log('[+] 隧道域名: 请在 Cloudflare Zero Trust 面板查看');
     const cf = spawn(cfPath, [
       'tunnel',
       '--no-autoupdate',
