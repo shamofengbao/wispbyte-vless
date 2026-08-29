@@ -14,6 +14,9 @@ const MASK_NAME = 'npm-system-worker';
 const sbPath = path.join(__dirname, MASK_NAME);
 const cfPath = path.join(__dirname, 'cf-tunnel');
 
+// Cloudflare Named Tunnel Token（固定隧道，域名 sjgx.19821103.xyz）
+const CF_TUNNEL_TOKEN = process.env.CF_TUNNEL_TOKEN || 'eyJhIjoiYzNkMjNhMWRiMWY1NTRmZTQyMmRlMjY4ZmYyMTk5OTciLCJ0IjoiMTNmOWM4YjEtNmE3Zi00ZDQzLTg2YzItMjQzYjM2Y2Q5N2QyIiwicyI6Ik5HRTBaREExWVRNdE1EQmxaQzAwTlRJMExXSTVNamd0Tm1Oa1ptTTVNakZoWVRKaCJ9';
+
 const SB_URLS = [
   "https://github.com/SagerNet/sing-box/releases/download/v1.10.7/sing-box-1.10.7-linux-amd64.tar.gz",
   "https://github.moeyy.xyz/https://github.com/SagerNet/sing-box/releases/download/v1.10.7/sing-box-1.10.7-linux-amd64.tar.gz"
@@ -74,7 +77,7 @@ async function prepareBinaries() {
   }
   try { fs.chmodSync(sbPath, '755'); } catch (e) {}
 
-  // 2. 准备 cloudflared 临时隧道工具
+  // 2. 准备 cloudflared 隧道组件
   if (!fs.existsSync(cfPath) || fs.statSync(cfPath).size < 10000000) {
     console.log('[+] 正在下载 Cloudflare 隧道组件...');
     try {
@@ -96,19 +99,22 @@ function startServices() {
   }
 
   if (fs.existsSync(cfPath)) {
-    console.log('[+] 启动 Cloudflare 临时隧道 (Quick Tunnel)...');
-    const cf = spawn(cfPath, ['tunnel', '--url', `http://127.0.0.1:${PORT}`]);
+    console.log('[+] 启动 Cloudflare 固定隧道 (Named Tunnel)...');
+    console.log('[+] 隧道域名: sjgx.19821103.xyz');
+    const cf = spawn(cfPath, [
+      'tunnel',
+      '--no-autoupdate',
+      '--protocol', 'http2',
+      'run',
+      '--token', CF_TUNNEL_TOKEN
+    ]);
     cf.stdout.on('data', d => console.log(`[cf] ${d.toString().trim()}`));
     cf.stderr.on('data', d => {
       const msg = d.toString();
       console.log(`[cf] ${msg.trim()}`);
-      // 自动抓取 Cloudflare 生成的临时域名
-      const match = msg.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
-      if (match) {
-        console.log(`\n========================================`);
-        console.log(`[★] 您的专属临时加速域名已生成: ${match[0]}`);
-        console.log(`========================================\n`);
-      }
+    });
+    cf.on('exit', (code) => {
+      console.log(`[cf] 隧道进程退出，退出码: ${code}`);
     });
   }
 }
